@@ -9,5 +9,6 @@
 jobs
 **__pycache__
 notebooks/main_results*
-notebooks/results_NewPriors**
-notebooks/
+notebooks/results_NewPrior*
+notebooks/CodeBak
+Untitle*
