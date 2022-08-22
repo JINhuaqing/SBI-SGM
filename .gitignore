@@ -1,0 +1,13 @@
+.ipynb_checkpoints
+*/.ipynb_checkpoints/*
+*.back
+.DS_Store
+.idea/
+.vscode
+*/data/meg
+*/data/losses
+jobs
+**__pycache__
+notebooks/main_results*
+notebooks/results_NewPriors**
+notebooks/
