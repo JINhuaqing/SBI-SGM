@@ -1,3 +1,3 @@
-# Inference of Neural Oscillatory Models
+# SBI for SGM inference
 
 

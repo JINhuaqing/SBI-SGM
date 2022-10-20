@@ -12,3 +12,9 @@ notebooks/main_results*
 notebooks/results_NewPrior*
 notebooks/CodeBak
 Untitle*
+backup
+results
+tmp
+sbi-logs
+Test*
+*.sif
