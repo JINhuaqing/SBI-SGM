@@ -1,1 +1,1 @@
-qsub -cwd -pe smp 50 -l mem_free=20G -l h_rt=5:00:00 job.sh 
+qsub -cwd -pe smp 30 -l mem_free=2G -l h_rt=5:00:00 job.sh 

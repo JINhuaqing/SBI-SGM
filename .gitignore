@@ -18,3 +18,4 @@ tmp
 sbi-logs
 Test*
 *.sif
+job.sh.*
