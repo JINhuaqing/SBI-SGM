@@ -19,3 +19,4 @@ sbi-logs
 Test*
 *.sif
 job.sh.*
+.nf*
