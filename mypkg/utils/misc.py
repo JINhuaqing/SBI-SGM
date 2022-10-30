@@ -58,6 +58,7 @@ def mag2db(y):
     return dby
 
 
+
 # calculate the spatial feature for MEG under the given band
 def meg_psd2spatialfeature(C, PSD, freqs, band="alpha"):
     """
