@@ -22,3 +22,11 @@ def psd_2tr(psd):
     psd_db = mag2db(psd)
     std_psd_db = stdz_psd(psd_db)
     return std_psd_db
+
+# convert psd to training format
+# abs -> mag2db -> stdize for all ROIs
+def psd_2tr_vec(psd):
+    psd = np.abs(psd)
+    psd_db = mag2db(psd)
+    std_psd_db_vec = stdz_vec(psd_db.flatten())
+    return std_psd_db_vec
