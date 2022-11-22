@@ -136,10 +136,10 @@ paras.names = ["Taue", "Taui", "TauC", "Speed", "alpha", "gii", "gei"]
 
 paras.add_v = 0.05
 paras.noise_sd = 0.20
-paras.num_prior_sps = int(1e2)
+paras.num_prior_sps = int(1e4)
 paras.den_est = "nsf"
 paras.is_embed = False
-paras.num_round = 1
+paras.num_round = 2
 paras.prior_sd = 10
 
 
@@ -268,9 +268,11 @@ for ix in range(0, ind_psd.shape[-1]):
     inference = SNPE(prior=prior, 
                      density_estimator=cur_den_est)
     proposal = prior 
-    for _ in range(paras.num_round):
+    num_spss = [10000, 1000]
+    for iy in range(paras.num_round):
         theta, x = simulate_for_sbi(simulator_wrapper, proposal,
-                                    num_simulations=paras.num_prior_sps, 
+                                    num_simulations=num_spss[iy],
+                                    #num_simulations=paras.num_prior_sps, 
                                     num_workers=50)
         density_estimator = inference.append_simulations(
                             theta, x, proposal=proposal
