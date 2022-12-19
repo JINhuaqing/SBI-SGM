@@ -12,17 +12,25 @@ def load_pkl(fil):
     return result
 
 # load file from folder and save it to dict
-def load_pkl_folder2dict(folder):
+def load_pkl_folder2dict(folder, excludes=[]):
+    all_exc = [list(folder.glob(exclude+".pkl")) for exclude in excludes]
+    all_exc_stem = []
+    for exc in all_exc:
+        cur_stem = [fil.stem for fil in exc]
+        all_exc_stem.extend(cur_stem)
+    all_exc_stem = list(set(all_exc_stem))
     res = edict()
     for fil in folder.glob('*.pkl'):
-        res[fil.stem] = load_pkl(fil)
+        if fil.stem not in all_exc_stem:
+            res[fil.stem] = load_pkl(fil)
     return res
 
 # save a dict into a folder
-def save_pkl_dict2folder(folder, res, is_force=False):
+def save_pkl_dict2folder(folder, res, excludes=[], is_force=False):
     assert isinstance(res, dict)
     for ky, v in res.items():
-        save_pkl(folder/f"{ky}.pkl", v, is_force=is_force)
+        if ky not in excludes:
+            save_pkl(folder/f"{ky}.pkl", v, is_force=is_force)
 
 # save file to pkl
 def save_pkl(fil, result, is_force=False):
@@ -98,4 +106,4 @@ def meg_psd2spatialfeature(C, PSD, freqs, band="alpha"):
     Cc2 = np.matmul(np.diag(L22), C2)    
     
     func1 = np.matmul(Cc2[0:68,0:68], summed_psd)
-    return func1, PSD[:, freqband] # first for analyse, second for plotting on brain Nrois x Nfreqs
+    return func1, PSD[:, freqband] # first for calculating the spatial correlation, second for plotting on brain Nrois x Nfreqs
