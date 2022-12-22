@@ -3,16 +3,25 @@ import scipy
 import pickle
 from easydict import EasyDict as edict
 
+def geodesic_dist(Q1, Q2):
+    """Calculate the geodesic distance between two PSD matrices. 
+    """
+    Q = np.linalg.inv(Q1) @ Q2
+    eigvs, _ = np.linalg.eig(Q)
+    dist = np.sqrt(np.sum(np.log2(eigvs)**2).real)
+    return dist
+
 
 # load file from pkl
-def load_pkl(fil):
-    print(f"Load file {fil}")
+def load_pkl(fil, verbose=True):
+    if verbose:
+        print(f"Load file {fil}")
     with open(fil, "rb") as f:
         result = pickle.load(f)
     return result
 
 # load file from folder and save it to dict
-def load_pkl_folder2dict(folder, excludes=[]):
+def load_pkl_folder2dict(folder, excludes=[], verbose=True):
     all_exc = [list(folder.glob(exclude+".pkl")) for exclude in excludes]
     all_exc_stem = []
     for exc in all_exc:
@@ -22,7 +31,7 @@ def load_pkl_folder2dict(folder, excludes=[]):
     res = edict()
     for fil in folder.glob('*.pkl'):
         if fil.stem not in all_exc_stem:
-            res[fil.stem] = load_pkl(fil)
+            res[fil.stem] = load_pkl(fil, verbose)
     return res
 
 # save a dict into a folder
