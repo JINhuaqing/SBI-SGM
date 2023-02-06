@@ -75,7 +75,7 @@ import importlib
 
 from utils.misc import mag2db, meg_psd2spatialfeature, save_pkl_dict2folder, load_pkl_folder2dict, get_mode
 
-from utils.standardize import stdz_psd, stdz_vec, minmax_vec, psd_2tr, psd_2tr_vec
+from utils.standardize import stdz_psd, stdz_vec, minmax_vec, psd_2tr
 
 from utils.brain_plot import U2BrainVec, reorderU 
 
@@ -168,7 +168,7 @@ if paras.add_v != 0:
 
 # paras  for this file
 _paras = edict()
-_folder_path = f"./Res4FC{paras.num_prior_sps:.0f}" +               f"_sd{paras.noise_sd*100:.0f}" +               f"_denest{paras.den_est}" +               f"_embed{paras.is_embed}"
+_folder_path = f"./Res4FC{paras.num_round}_{paras.num_prior_sps:.0f}" +               f"_sd{paras.noise_sd*100:.0f}" +               f"_denest{paras.den_est}" +               f"_embed{paras.is_embed}"
 _paras.folder_path = RES_ROOT/_folder_path
 print(f"folder is {_paras.folder_path}")
 print(_paras.folder_path.exists())
@@ -198,7 +198,7 @@ def simulator(params, noise_sd, sgmmodel, prior_bds):
     
     psd, spatialFs = sgmmodel.run_local_coupling_forward(params_trans)
     psd = psd[:68, :]
-    std_psd_DB = psd_2tr_vec(psd)
+    std_psd_DB = psd_2tr(psd)
     psd_fs = std_psd_DB.flatten()
     
     res = psd_fs
@@ -248,9 +248,6 @@ for ix in range(0, ind_psd.shape[-1]):
     simulator_wrapper, prior = prepare_for_sbi(simulator_sp, prior)
     
     # the observed data
-    sp, raw_sps = meg_psd2spatialfeature(curBrain.reducedConnectome, 
-                                         ind_psd[:, :, ix], FREQS, 
-                                         band="alpha")
     std_psd_DB = psd_2tr(ind_psd[:, :, ix])
     curX_raw = std_psd_DB.flatten()
     curX = torch.Tensor(curX_raw)
