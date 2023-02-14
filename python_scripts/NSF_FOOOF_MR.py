@@ -67,7 +67,7 @@ import importlib
 
 import utils.misc
 importlib.reload(utils.misc);
-from utils.misc import mag2db, meg_psd2spatialfeature, save_pkl_dict2folder, load_pkl_folder2dict, get_mode
+from utils.misc import mag2db, meg_psd2spatialfeature, save_pkl_dict2folder, load_pkl_folder2dict
 
 import utils.standardize
 importlib.reload(utils.standardize);
@@ -86,7 +86,7 @@ from spectrome import Brain, path, functions
 
 import features.psm
 importlib.reload(features.psm)
-from features.psm import obt_psm_fs, obt_psm_raw
+from features.psm import obt_psm_fs
 
 import constants
 importlib.reload(constants)
@@ -95,12 +95,6 @@ from constants import RES_ROOT, FIG_ROOT, DAT_ROOT
 import models.embedding_nets 
 importlib.reload(models.embedding_nets)
 from models.embedding_nets import SummaryNet
-
-
-# In[ ]:
-
-
-
 
 
 # #### Some fns for this file only
@@ -176,10 +170,12 @@ paras.par_high = np.asarray([0.03, 0.20, 0.03,5.3,  1, 10, 10])
 paras.plotLimits = np.array([paras.par_low, paras.par_high]).T
 paras.names = ["Taue", "Taui", "TauC", "Speed", "alpha", "gii", "gei"]
 
-paras.noise_sd = 0.15
-paras.num_prior_sps = int(1e5)
+# paras 
+paras.noise_sd = 0.30
+paras.num_prior_sps = int(2e4)
 paras.den_est = "nsf"
-paras.is_embed = True
+paras.num_round = 1
+paras.is_embed = False
 
 
 # In[8]:
@@ -187,7 +183,7 @@ paras.is_embed = True
 
 # paras  for this file
 _paras = edict()
-_folder_path = f"./fooofgeneralNoise_{paras.num_prior_sps:.0f}" +               f"_sd{paras.noise_sd*100:.0f}" +               f"_denest{paras.den_est}" +               f"_embed{paras.is_embed}"
+_folder_path = f"./fooofMR_{paras.num_prior_sps:.0f}" +               f"_sd{paras.noise_sd*100:.0f}" +               f"_denest{paras.den_est}" +               f"_numround{paras.num_round:.0f}" +               f"_embed{paras.is_embed}"
 _paras.folder_path = RES_ROOT/_folder_path
 print(f"folder is {_paras.folder_path}")
 print(_paras.folder_path.exists())
@@ -237,68 +233,80 @@ def simulator(params, noise_sd, sgmmodel):
 prior = sutils.BoxUniform(low=torch.as_tensor(paras.par_low), high=torch.as_tensor(paras.par_high))
 
 
-# #### Density estimator
-
-# In[12]:
-
-
-if paras.is_embed:
-    embedding_net = SummaryNet(num_in_fs=516)
-    paras.den_est = sutils.posterior_nn(
-    model=paras.den_est, embedding_net=embedding_net)
-    for ix in embedding_net.parameters():
-        print(ix.sum(), ix.shape)
-
-
-# ### SBI
-
-# In[13]:
-
-
-# obtain the brain
-brain = Brain.Brain()
-brain.add_connectome(DAT_ROOT)
-brain.reorder_connectome(brain.connectome, brain.distance_matrix)
-brain.bi_symmetric_c()
-brain.reduce_extreme_dir()
-sgmmodel = SGM(brain.reducedConnectome, brain.distance_matrix, FREQS)
-
-simulator_sp = partial(simulator,  noise_sd=paras.noise_sd, sgmmodel=sgmmodel)
-# make a SBI-wrapper on the simulator object for compatibility
-simulator_wrapper, prior = prepare_for_sbi(simulator_sp, prior)
-
-
 # In[ ]:
 
 
 
 
 
+# ### SBI
+
 # #### RUN
 
-# In[14]:
+# In[12]:
 
 
-theta, x = simulate_for_sbi(simulator_wrapper, prior, 
-                            num_simulations=int(paras.num_prior_sps), 
-                            num_workers=50)
-theta, x = _remove_nopeak(theta, x) # remove some samples
-#theta, x = cur_res.theta, cur_res.x
-inference = SNPE(prior=prior, density_estimator=paras.den_est)
-density_estimator = inference.append_simulations(theta, x).train()
-posterior = inference.build_posterior(density_estimator)
+# obtain the brain
+for ix in range(33, ind_psd.shape[-1]):
+    curC = ind_conn[:, :, ix]
+    curBrain = Brain.Brain()
+    curBrain.add_connectome(DAT_ROOT) # grabs distance matrix
+    # re-ordering for DK atlas and normalizing the connectomes:
+    curBrain.reorder_connectome(curBrain.connectome, curBrain.distance_matrix)
+    curBrain.connectome = curC# re-assign connectome to individual connectome
+    curBrain.bi_symmetric_c()
+    curBrain.reduce_extreme_dir()
+        
+    # the simulator
+    sgmmodel = SGM(curBrain.reducedConnectome, curBrain.distance_matrix, FREQS)
+    simulator_sp = partial(simulator,  
+                           noise_sd=paras.noise_sd, 
+                           sgmmodel=sgmmodel)
+    # make a SBI-wrapper on the simulator object for compatibility
+    simulator_wrapper, prior = prepare_for_sbi(simulator_sp, prior)
+    
+    # the observed data
+    sp, raw_sps = meg_psd2spatialfeature(curBrain.reducedConnectome, 
+                                         ind_psd[:, :, ix], FREQS, 
+                                         band="alpha")
+    std_spv = stdz_vec(raw_sps.sum(axis=1))
+    std_psd_DB = psd_2tr(ind_psd[:, :, ix])
+    psm_fs = _stdpsd_2psmfs(std_psd_DB)
+    psd_mean_fs = stdz_vec(std_psd_DB.mean(axis=0)) # mean PSD, 40 dim
+    
+    curX_raw = np.concatenate([psm_fs, psd_mean_fs, std_spv])
+    curX = torch.Tensor(curX_raw)
 
 
-# In[15]:
-
-
-cur_res.theta = theta
-cur_res.x = x
-cur_res.posterior = posterior
-if paras.is_embed:
-    cur_res.embedding_net = embedding_net
-    for ix in embedding_net.parameters():
-        print(ix.sum(), ix.shape)
-save_pkl_dict2folder(_paras.folder_path, cur_res, True)
+    if paras.is_embed:
+        # embedding net
+        cur_embedding_net = SummaryNet(num_in_fs=516)
+        paras.den_est = sutils.posterior_nn(
+        model=paras.den_est, embedding_net=cur_embedding_net)
+        #for ix in embedding_net.parameters():
+        #    print(ix.sum(), ix.shape)
+    
+    inference = SNPE(prior=prior, 
+                     density_estimator=paras.den_est)
+    proposal = prior 
+    for _ in range(paras.num_round):
+        theta, x = simulate_for_sbi(simulator_wrapper, proposal,
+                                    num_simulations=paras.num_prior_sps, 
+                                    num_workers=50)
+        theta, x = _remove_nopeak(theta, x) # remove some samples
+        density_estimator = inference.append_simulations(
+                            theta, x, proposal=proposal
+                            ).train()
+        posterior = inference.build_posterior(density_estimator)
+        
+        
+        #update proposal 
+        proposal = posterior.set_default_x(curX)
+        
+    cur_res[f"posterior_{ix+1}"] = posterior
+    cur_res[f"posteriorfix_{ix+1}"] = proposal
+    if paras.is_embed:
+        cur_res[f"embedding_net_{ix+1}"] = cur_embedding_net
+    save_pkl_dict2folder(_paras.folder_path, cur_res)
 
 
