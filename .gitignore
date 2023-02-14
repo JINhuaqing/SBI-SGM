@@ -20,3 +20,4 @@ Test*
 *.sif
 job.sh.*
 .nf*
+figs/
