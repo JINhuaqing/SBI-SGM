@@ -1,10 +1,8 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# This file is to try SBI_SGM when extracting features with fooof (power spectrum model)
-# 
-# And I train model with a general connectome.
-# 
+# I only test the issue caused via L 
+# refer to sgm_symL.py (in mypkg/sgm folder) 
 
 # ### import and define
 
@@ -91,9 +89,7 @@ import utils.stable
 importlib.reload(utils.stable)
 from utils.stable import paras_table_check
 
-import sgm.sgm
-importlib.reload(sgm.sgm);
-from sgm.sgm import SGM
+from sgm.sgm_symL import SGM
 
 
 from spectrome import Brain, path, functions
@@ -194,7 +190,7 @@ def _filter_unstable(theta_raw, prior_bds, x=None):
 
 # paras  for this file
 _paras = edict()
-_folder_path = f"./new_bds_reparam{paras.num_prior_sps:.0f}" +               f"_sd{paras.noise_sd*100:.0f}" +               f"_denest{paras.den_est}" +               f"_embed{paras.is_embed}"
+_folder_path = f"./symL_reparam{paras.num_prior_sps:.0f}" +               f"_sd{paras.noise_sd*100:.0f}" +               f"_denest{paras.den_est}" +               f"_embed{paras.is_embed}"
 _paras.folder_path = RES_ROOT/_folder_path
 print(f"folder is {_paras.folder_path}")
 print(_paras.folder_path.exists())
