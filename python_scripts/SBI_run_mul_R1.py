@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# This file is to try SBI_SGM for final results
+# This file is to try SBI_SGM for neuroimage R1. 
+#only difference is I use t-3 error other than normal error
 # 
 # And I train model with a general connectome.
 # 
@@ -234,7 +235,8 @@ def simulator(params, noise_sd, sgmmodel, prior_bds):
     psd_fs = std_psd_DB.flatten()
     
     res = np.concatenate([psd_fs, std_spatial]) 
-    noise =  np.random.randn(*res.shape)*noise_sd 
+    noise = scipy.stats.t.rvs(3, size=res.shape);
+    noise = noise_sd * noise/noise.std() # make sd to 10
     
     return res+noise
 
@@ -322,7 +324,7 @@ for iy in range(0, paras.num_rep):
     # In[19]:
     
     
-    cur_folder_path = f"./new_bds{iy+1}_reparam{paras.num_prior_sps:.0f}" +               f"_sd{paras.noise_sd*100:.0f}" +               f"_denest{paras.den_est}" +               f"_embed{paras.is_embed}"
+    cur_folder_path = f"./new_bds{iy+1}_reparam{paras.num_prior_sps:.0f}" + f"_sd{paras.noise_sd*100:.0f}" + f"_denest{paras.den_est}" + f"_embed{paras.is_embed}_t3"
     cur_folder_path = RES_ROOT/cur_folder_path
     cur_res.theta_raw = theta_raw_stable
     #cur_res.x = x_stable

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# This file is to try SBI_SGM when extracting features with fooof (power spectrum model)
+# This file is to try SBI_SGM  for final results
 # 
 # And I train model with a general connectome.
 # 

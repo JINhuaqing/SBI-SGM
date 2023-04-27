@@ -2,6 +2,7 @@
 # coding: utf-8
 
 # This file is to analyze the results and save them
+# you should notice the _folder_path
 # 
 
 # ### import and define
@@ -130,7 +131,7 @@ paras.prior_sd = 10
 
 # paras  for this file
 _paras = edict()
-_folder_path = f"./new_bds[0-9]*_reparam{paras.num_prior_sps:.0f}" +               f"_sd{paras.noise_sd*100:.0f}" +               f"_denest{paras.den_est}" +               f"_embed{paras.is_embed}"
+_folder_path = f"./new_bds[0-9]*_reparam{paras.num_prior_sps:.0f}" +               f"_sd{paras.noise_sd*100:.0f}" +               f"_denest{paras.den_est}" +               f"_embed{paras.is_embed}_t3"
 _paras.fils = list(RES_ROOT.glob(_folder_path))
 _paras.fils = sorted(_paras.fils, key=lambda x: int(x.stem.split("bds")[1].split("_")[0]))
 
