@@ -236,7 +236,7 @@ def simulator(params, noise_sd, sgmmodel, prior_bds):
     
     res = np.concatenate([psd_fs, std_spatial]) 
     noise = scipy.stats.t.rvs(3, size=res.shape);
-    noise = noise_sd * noise/noise.std() # make sd to 10
+    noise = noise_sd * noise/noise.std() # make sd to our pre-specified one
     
     return res+noise
 
