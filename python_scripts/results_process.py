@@ -118,7 +118,7 @@ paras.par_high = np.asarray([0.03, 0.20, 0.03,20,  1,    2,  0.7])
 paras.prior_bds = np.array([paras.par_low, paras.par_high]).T
 paras.names = ["Taue", "Taui", "TauC", "Speed", "alpha", "gii", "gei"]
 
-paras.noise_sd = 0.10
+paras.noise_sd = 1.6
 paras.num_prior_sps = int(1e5)
 paras.den_est = "nsf"
 paras.is_embed = False
